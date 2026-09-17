@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+data_temp/*
+!data_temp/.gitkeep
+output/*
+!output/.gitkeep
+tools/*.zip
+tools/ImageJ.app/
+tools/ImageJ/
