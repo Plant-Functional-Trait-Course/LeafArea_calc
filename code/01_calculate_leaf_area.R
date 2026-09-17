@@ -68,14 +68,6 @@ loop_files <- function(files) {
 
   file.copy(files, temp_dir, overwrite = TRUE)
 
-  if (grepl("-NA$", files)) {
-    newfile <- basename(files)
-    file.rename(
-      file.path(temp_dir, newfile),
-      file.path(temp_dir, gsub("-NA$", "", newfile))
-    )
-  }
-
   message(files)
   enable_imagej_java(imagej_path)
 
@@ -95,11 +87,13 @@ loop_files <- function(files) {
     silent = TRUE
   )
 
+  # Keep ImageJ's mask so the outline can be checked later
   mask_files <- dir(temp_dir, full.names = TRUE, pattern = "\\.tif$")
   if (length(mask_files) > 0) {
     file.copy(mask_files, mask_dir, overwrite = TRUE)
   }
 
+  # Clear the temp folder so the next image is processed on its own
   leftover <- dir(temp_dir, full.names = TRUE)
   if (length(leftover) > 0 && any(!file.remove(leftover))) {
     stop("Could not empty the temp folder: ", temp_dir)
@@ -107,6 +101,7 @@ loop_files <- function(files) {
 
   scan_id <- tools::file_path_sans_ext(basename(files))
 
+  # If ImageJ failed, return NA for this scan and continue the batch
   if (inherits(area, "try-error") || !is.list(area) || length(area) < 2) {
     return(tibble(dir = dirname(files), id = scan_id, leaf_area = NA_real_))
   }
