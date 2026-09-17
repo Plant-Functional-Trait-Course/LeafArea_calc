@@ -2,7 +2,19 @@
 
 Measure leaf area from scanned photos with R and [ImageJ](https://imagej.net/ij/), using the [`LeafArea`](https://github.com/richardjtelford/LeafArea) package.
 
-This is a [GitHub template](https://github.com/Plant-Functional-Trait-Course/LeafArea_calc) for the [Plant Functional Trait Course](https://github.com/Plant-Functional-Trait-Course). Click **Use this template** to make your own copy, then clone that copy. Do not work directly in the course template.
+This is a [GitHub template](https://github.com/Plant-Functional-Trait-Course/LeafArea_calc) for the [Plant Functional Trait Course](https://github.com/Plant-Functional-Trait-Course). Do not work directly in the course template; make your own copy first.
+
+## Get a copy
+
+**Preferred:** make a GitHub account, then use the template.
+
+1. If you do not yet have a GitHub account, create one at [github.com/signup](https://github.com/signup). You need to be logged in for the **Use this template** button to appear.
+2. On [LeafArea_calc](https://github.com/Plant-Functional-Trait-Course/LeafArea_calc), click **Use this template** → **Create a new repository**.
+3. Clone your new repository, or in GitHub click **Code** → **Download ZIP** and unzip it.
+
+**Without a GitHub account:** you can still get the files. On [LeafArea_calc](https://github.com/Plant-Functional-Trait-Course/LeafArea_calc), click **Code** → **Download ZIP**, then unzip the folder. You will not get a personal GitHub copy this way, but the R scripts work the same.
+
+Unzip or clone the project into a path **without spaces** (for example `C:/LeafArea_calc` on Windows).
 
 The workflow is the same on Mac and Windows. What differs is **how ImageJ and Java are installed**. Run the setup script once on each computer, then use the same analysis script everywhere.
 
