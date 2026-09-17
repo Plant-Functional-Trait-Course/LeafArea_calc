@@ -12,7 +12,7 @@ The workflow is the same on Mac and Windows. What differs is **how ImageJ and Ja
 - Leaf photos in `data/` (jpeg, jpg, tif, or tiff)
 - **No spaces** in file or folder names (`LeafArea` cannot handle them)
 
-You do **not** need a separate Java or ImageJ install. The setup script downloads original ImageJ (not Fiji / ImageJ2) with Java bundled.
+You do **not** need Rtools, a separate Java install, or a manual ImageJ install. The setup script downloads original ImageJ (not Fiji / ImageJ2) with Java bundled.
 
 ## Setup (once per computer)
 
@@ -21,7 +21,8 @@ You do **not** need a separate Java or ImageJ install. The setup script download
 
 That script:
 
-- installs `tidyverse`, `plyr`, and `LeafArea` (GitHub fork with extra trim options)
+- installs `tidyverse` and `plyr` from CRAN
+- installs [`LeafArea`](https://github.com/richardjtelford/LeafArea) from GitHub (the fork with extra crop options). This is a pure R package, so it is installed from a zip and **does not need Rtools**
 - downloads the correct ImageJ build for Mac (Apple Silicon or Intel) or Windows
 - unpacks it into `tools/`
 - checks that ImageJ's Java actually runs
@@ -90,6 +91,18 @@ tools/                       # ImageJ is downloaded here (not committed)
 ```
 
 ## Troubleshooting
+
+**`Rtools is required` / `Rtools is not available for this version`**  
+Rtools is only needed to *compile* packages (C/C++/Fortran). `LeafArea` is pure R, so this project does not need it.
+
+`remotes::install_github()` still *checks* for Rtools on Windows and can fail even when compilation is unnecessary. Setup therefore installs the GitHub zip with `install.packages()`, which does not require Rtools.
+
+If you still want Rtools for other packages: R 4.4 needs [Rtools44](https://cran.r-project.org/bin/windows/Rtools/), R 4.5 and R 4.6 need [Rtools45](https://cran.r-project.org/bin/windows/Rtools/rtools45/rtools.html) in `C:\rtools45`. There is no Rtools46.
+
+**The scan name prints, but there is no leaf area (Windows)**  
+On Windows, ImageJ is started from the ImageJ folder, so it cannot see a relative folder like `data_temp`. The script now passes an absolute path. Re-run the whole of `01_calculate_leaf_area.R` from the top. If a black Command Prompt window says `Press any key to continue`, press a key; that pause comes from LeafArea.
+
+Also avoid spaces in the project path (`C:/LeafArea_calc` is safer than `C:/Users/First Last/Documents/...`).
 
 **`Unable to locate a Java Runtime`**  
 Run `code/00_setup.R`, then re-run the whole of `01_calculate_leaf_area.R` from the top (not just the last few lines).

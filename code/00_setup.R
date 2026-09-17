@@ -15,20 +15,59 @@ if (file.exists("code/imagej_helpers.R")) {
 setwd(project_root())
 dir.create(tools_dir(), showWarnings = FALSE, recursive = TRUE)
 
+# LeafArea is a pure R package (no C/Fortran). remotes::install_github() still
+# asks for Rtools on Windows, even though it is not needed. Installing the
+# GitHub zip with utils::install.packages() avoids that check.
+leafarea_has_trim <- function() {
+  if (!"LeafArea" %in% rownames(installed.packages())) {
+    return(FALSE)
+  }
+  "trim.pixel.right" %in% names(formals(LeafArea::run.ij))
+}
+
+install_leafarea_github <- function() {
+  if (leafarea_has_trim()) {
+    message("LeafArea GitHub fork already installed.")
+    return(invisible(TRUE))
+  }
+
+  message("Installing LeafArea from GitHub (richardjtelford/LeafArea)...")
+  zip_url <- "https://github.com/richardjtelford/LeafArea/archive/refs/heads/master.zip"
+  zip_file <- tempfile(fileext = ".zip")
+  unpack_dir <- tempfile()
+  dir.create(unpack_dir)
+
+  utils::download.file(zip_url, zip_file, mode = "wb")
+  utils::unzip(zip_file, exdir = unpack_dir)
+  pkg_dir <- list.dirs(unpack_dir, recursive = FALSE, full.names = TRUE)
+  pkg_dir <- pkg_dir[file.exists(file.path(pkg_dir, "DESCRIPTION"))]
+  if (length(pkg_dir) != 1) {
+    stop("Could not find the LeafArea package in the GitHub zip.")
+  }
+
+  utils::install.packages(pkg_dir, repos = NULL, type = "source")
+  unlink(c(zip_file, unpack_dir), recursive = TRUE)
+
+  if (!leafarea_has_trim()) {
+    stop(
+      "LeafArea installed, but run.ij() is missing trim.pixel.right.\n",
+      "Need the GitHub fork: https://github.com/richardjtelford/LeafArea"
+    )
+  }
+  invisible(TRUE)
+}
+
 
 ## ---- R packages ----
 message("Installing R packages if needed...")
 
-cran_packages <- c("tidyverse", "plyr", "remotes")
+cran_packages <- c("tidyverse", "plyr")
 missing <- cran_packages[!cran_packages %in% rownames(installed.packages())]
 if (length(missing) > 0) {
   install.packages(missing, repos = "https://cloud.r-project.org")
 }
 
-if (!"LeafArea" %in% rownames(installed.packages())) {
-  remotes::install_github("richardjtelford/LeafArea", upgrade = "never")
-}
-
+install_leafarea_github()
 message("R packages OK.")
 
 

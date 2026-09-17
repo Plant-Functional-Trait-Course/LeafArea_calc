@@ -28,6 +28,13 @@ if (!all(required_packages %in% rownames(installed.packages()))) {
 library(tidyverse)
 library(LeafArea)
 
+if (!"trim.pixel.right" %in% names(formals(LeafArea::run.ij))) {
+  stop(
+    "This project needs the GitHub fork of LeafArea (with trim.pixel.right).\n",
+    "Run code/00_setup.R to install it from GitHub."
+  )
+}
+
 
 ## ---- paths ----
 image_dir <- "data"
@@ -38,6 +45,21 @@ mask_dir <- file.path(output_dir, "masks")
 dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
 dir.create(mask_dir, showWarnings = FALSE, recursive = TRUE)
 
+# LeafArea on Windows launches ImageJ from the ImageJ folder, so relative
+# paths like "data_temp" are not found. Always pass absolute paths.
+image_dir <- normalizePath(image_dir, winslash = "/", mustWork = TRUE)
+temp_dir <- normalizePath(temp_dir, winslash = "/", mustWork = TRUE)
+output_dir <- normalizePath(output_dir, winslash = "/", mustWork = TRUE)
+mask_dir <- normalizePath(mask_dir, winslash = "/", mustWork = TRUE)
+
+if (grepl(" ", project_root())) {
+  warning(
+    "The project path contains spaces. LeafArea/ImageJ often fails on Windows ",
+    "in that case. Move the project to a path without spaces, e.g. C:/LeafArea_calc.",
+    call. = FALSE
+  )
+}
+
 
 ## ---- ImageJ ----
 imagej_path <- find_imagej()
@@ -45,6 +67,7 @@ if (is.na(imagej_path)) {
   stop("ImageJ was not found. Run code/00_setup.R first.")
 }
 enable_imagej_java(imagej_path)
+message("Using ImageJ at: ", imagej_path)
 
 
 ## ---- analysis settings ----
@@ -75,6 +98,7 @@ loop_files <- function(files) {
     run.ij(
       path.imagej = imagej_path,
       set.directory = temp_dir,
+      set.memory = 2,
       distance.pixel = distance_pixel,
       known.distance = known_distance_cm,
       log = TRUE,
@@ -103,6 +127,12 @@ loop_files <- function(files) {
 
   # If ImageJ failed, return NA for this scan and continue the batch
   if (inherits(area, "try-error") || !is.list(area) || length(area) < 2) {
+    reason <- if (inherits(area, "try-error")) {
+      conditionMessage(attr(area, "condition"))
+    } else {
+      paste(as.character(area), collapse = " ")
+    }
+    warning("No leaf area for ", files, ": ", reason, call. = FALSE)
     return(tibble(dir = dirname(files), id = scan_id, leaf_area = NA_real_))
   }
 
@@ -140,8 +170,8 @@ leaf_area <- leaf_area_raw |>
   mutate(id = sub("\\..*", "", id)) |>
   group_by(dir, id) |>
   summarise(
-    n_particles = n(),
-    leaf_area = sum(leaf_area, na.rm = TRUE),
+    n_particles = sum(!is.na(leaf_area)),
+    leaf_area = if (all(is.na(leaf_area))) NA_real_ else sum(leaf_area, na.rm = TRUE),
     .groups = "drop"
   )
 
